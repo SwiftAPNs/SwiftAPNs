@@ -9,14 +9,13 @@
 import Foundation
 import COpenSSL
 
-
-enum APNJSONWebTokenError: Error {
-    case invalidPrivateKey
-}
-
-public struct APNJSONWebToken {
+public struct JSONWebToken {
     
-    private static let loadOpenSSL: () = {
+    public enum Error: Swift.Error {
+        case invalidPrivateKey
+    }
+    
+    private static let initOpenSSL: () = {
        OPENSSL_add_all_algorithms_conf()
     }()
     
@@ -28,7 +27,7 @@ public struct APNJSONWebToken {
     private let teamId: String
     
     public init(privateKey pem: Data, keyId: String, teamId: String) throws {
-        APNJSONWebToken.loadOpenSSL
+        JSONWebToken.initOpenSSL
         
         // Load private key
         guard let privateKey = pem.withUnsafeBytes({ (pointer: UnsafePointer<UInt8>) -> UnsafeMutablePointer<EVP_PKEY>? in
@@ -40,7 +39,7 @@ public struct APNJSONWebToken {
                 return nil
             }
         }) else {
-            throw APNJSONWebTokenError.invalidPrivateKey
+            throw Error.invalidPrivateKey
         }
         
         let headerDictionary = [
@@ -52,11 +51,11 @@ public struct APNJSONWebToken {
         self.privateKey = privateKey
         self.header = (try! JSONSerialization.data(withJSONObject: headerDictionary, options: [])).base64EncodedString()
         self.teamId = teamId
-        (self.token, self.issuedAt) = APNJSONWebToken.generateToken(privateKey: privateKey, header: header, teamId: teamId)
+        (self.token, self.issuedAt) = JSONWebToken.generateToken(privateKey: privateKey, header: header, teamId: teamId)
     }
     
     internal mutating func reissueToken() {
-        (self.token, self.issuedAt) = APNJSONWebToken.generateToken(privateKey: self.privateKey, header: self.header, teamId: self.teamId)
+        (self.token, self.issuedAt) = JSONWebToken.generateToken(privateKey: self.privateKey, header: self.header, teamId: self.teamId)
     }
     
     private static func generateToken(privateKey: UnsafeMutablePointer<EVP_PKEY>, header: String, teamId: String) -> (token: String, issuedAt: Date) {
@@ -65,18 +64,18 @@ public struct APNJSONWebToken {
             "iat": UInt64(issuedAt.timeIntervalSince1970),
             "iss": teamId
         ]
-        let claims = try! JSONSerialization.data(withJSONObject: claimsDictionary, options: []).base64EncodedString()
+        let claims = try! JSONSerialization.data(withJSONObject: claimsDictionary).base64EncodedString()
         
         let content = "\(header).\(claims)"
         
-        let signature = APNJSONWebToken.sign(content: content.data(using: .utf8)!, with: privateKey)
+        let signature = JSONWebToken.sign(content: content.data(using: .utf8)!, with: privateKey)
         
         return ("\(content).\(signature.base64EncodedString())", issuedAt)
     }
     
     private static func sign(content: Data, with privateKey: UnsafeMutablePointer<EVP_PKEY>) -> Data {
         // Make sure OpenSSL is loaded
-        APNJSONWebToken.loadOpenSSL
+        JSONWebToken.initOpenSSL
         
         let context = EVP_MD_CTX_create()
         let digest = EVP_get_digestbyname("SHA256")

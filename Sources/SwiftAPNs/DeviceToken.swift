@@ -8,12 +8,12 @@
 
 import Foundation
 
-enum APNDeviceTokenError: Error {
-    case emptyToken
-    case invalidToken
-}
-
-public struct APNDeviceToken: RawRepresentable {
+public struct DeviceToken: RawRepresentable {
+    
+    public enum Error: Swift.Error {
+        case emptyToken
+        case invalidToken
+    }
     
     private static let hexCharacterSet = CharacterSet(charactersIn: "0123456789abcdef")
     
@@ -33,19 +33,20 @@ public struct APNDeviceToken: RawRepresentable {
     
     public init(hexString: String) throws {
         guard !hexString.isEmpty else {
-            throw APNDeviceTokenError.emptyToken
+            throw Error.emptyToken
         }
         
         self.rawValue = hexString.lowercased()
         
-        guard self.rawValue.trimmingCharacters(in: APNDeviceToken.hexCharacterSet).isEmpty else {
-            throw APNDeviceTokenError.invalidToken
+        guard self.rawValue.trimmingCharacters(in: DeviceToken.hexCharacterSet).isEmpty,
+            self.rawValue.count % 2 == 0 else {
+                throw Error.invalidToken
         }
     }
     
     public init(data: Data) throws {
         guard !data.isEmpty else {
-            throw APNDeviceTokenError.emptyToken
+            throw Error.emptyToken
         }
         
         self.rawValue = data.reduce("") { hexString, byte in

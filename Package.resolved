@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "COpenSSL",
+        "repositoryURL": "https://github.com/SwiftAPNs/COpenSSL.git",
+        "state": {
+          "branch": null,
+          "revision": "ae6a54de1475aff8e3f6284e24129812ad5c87e6",
+          "version": "1.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

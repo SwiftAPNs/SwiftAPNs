@@ -8,20 +8,19 @@
 
 import Foundation
 
-public enum APNSendError {
-    case connectionError(underlyingError: Error?)
-    case apnsError(statusCode: Int, content: [String : Any]?)
-}
-
-public final class APNProvider: NSObject, URLSessionDelegate {
+public final class PushProvider: NSObject, URLSessionDelegate {
+    
+    public enum Error: Swift.Error {
+        case connectionError(underlyingError: Swift.Error?)
+        case apnsError(statusCode: Int, content: [String : Any]?)
+    }
     
     private let url: URL
     
     private let delegateQueue = OperationQueue()
-    private var jsonWebToken: APNJSONWebToken
+    private var jsonWebToken: JSONWebToken
     
-    
-    init(jsonWebToken: APNJSONWebToken, production: Bool = false) {
+    init(jsonWebToken: JSONWebToken, production: Bool = false) {
         self.jsonWebToken = jsonWebToken
         
         if production {
@@ -37,7 +36,7 @@ public final class APNProvider: NSObject, URLSessionDelegate {
     }()
     
     // Completion handler is called on a background queue
-    public func send(notification: APNNotification, to recipient: APNDeviceToken, completionHandler: @escaping (_ error: APNSendError?) -> Void) {
+    public func send(notification: PushNotification, to recipient: DeviceToken, completionHandler: @escaping (_ error: Error?) -> Void) {
         let url = self.url.appendingPathComponent(recipient.hexString)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

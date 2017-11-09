@@ -1,9 +1,23 @@
+// swift-tools-version:4.0
+
 import PackageDescription
 
 let package = Package(
-    name: "swift-apn",
-    targets: [],
+    name: "SwiftAPNs",
+    products: [
+        .library(
+            name: "SwiftAPNs",
+            targets: ["SwiftAPNs"]),
+    ],
     dependencies: [
-    .Package(url: "https://github.com/Zewo/COpenSSL.git", versions: Version(0, 0, 0) ..< Version(1, 0, 0))
+        .package(url: "https://github.com/SwiftAPNs/COpenSSL.git", from: "1.0.0")
+    ],
+    targets: [
+        .target(
+            name: "SwiftAPNs",
+            dependencies: ["COpenSSL"]),
+        .testTarget(
+            name: "SwiftAPNsTests",
+            dependencies: ["SwiftAPNs"]),
     ]
 )

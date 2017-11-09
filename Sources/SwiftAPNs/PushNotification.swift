@@ -8,25 +8,25 @@
 
 import Foundation
 
-enum APNNotificationError: Error {
-    case invalidPayloadDictionary
-}
-
-public enum APNNotificationPriority {
-    case low
-    case high
+public struct PushNotification {
     
-    internal var stringValue: String {
-        switch self {
-        case .low:
-            return "5"
-        case .high:
-            return "10"
+    public enum Error: Swift.Error {
+        case invalidPayloadDictionary
+    }
+    
+    public enum Priority {
+        case low
+        case high
+        
+        internal var stringValue: String {
+            switch self {
+            case .low:
+                return "5"
+            case .high:
+                return "10"
+            }
         }
     }
-}
-
-public struct APNNotification {
     
     private enum Keys {
         static let aps = "aps"
@@ -155,7 +155,7 @@ public struct APNNotification {
     
     public var expiration: Date?
     
-    public var priority: APNNotificationPriority?
+    public var priority: Priority?
     
     public var topic: String?
     
@@ -164,7 +164,7 @@ public struct APNNotification {
     public mutating func updatePayload(with dictionary: [String : Any]?) throws {
         if let dictionary = dictionary {
             guard JSONSerialization.isValidJSONObject(dictionary) else {
-                throw APNNotificationError.invalidPayloadDictionary
+                throw Error.invalidPayloadDictionary
             }
             self.payload = dictionary
         } else {
@@ -176,6 +176,6 @@ public struct APNNotification {
         // Combine aps and payload dictionary
         var dictionary = self.payload ?? [:]
         dictionary[Keys.aps] = self.aps
-        return try! JSONSerialization.data(withJSONObject: dictionary, options: [])
+        return try! JSONSerialization.data(withJSONObject: dictionary)
     }
 }

@@ -10,12 +10,12 @@ import Foundation
 
 private let privateKey = "-----BEGIN PRIVATE KEY-----\n*******YOUR PRIVATE KEY*******\n-----END PRIVATE KEY-----"
 
-let deviceToken = try! APNDeviceToken(hexString: "YOUR DEVICE TOKEN")
+let deviceToken = try! DeviceToken(hexString: "YOUR DEVICE TOKEN")
 
-let jwt = try! APNJSONWebToken(privateKey: privateKey.data(using: .utf8)!, keyId: "YOUR KEY ID", teamId: "YOUR TEAM ID")
-let provider = APNProvider(jsonWebToken: jwt, production: true)
+let jwt = try! JSONWebToken(privateKey: privateKey.data(using: .utf8)!, keyId: "YOUR KEY ID", teamId: "YOUR TEAM ID")
+let provider = PushProvider(jsonWebToken: jwt, production: true)
 
-var notification = APNNotification()
+var notification = PushNotification()
 notification.topic = "YOUR TOPIC"
 notification.alertTitle = "Swift!"
 notification.alertBody = "Hello from Swift!"
