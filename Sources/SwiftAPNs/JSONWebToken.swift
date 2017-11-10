@@ -49,7 +49,7 @@ public struct JSONWebToken {
         ]
         
         self.privateKey = privateKey
-        self.header = (try! JSONSerialization.data(withJSONObject: headerDictionary, options: [])).base64EncodedString()
+        self.header = (try! JSONSerialization.data(withJSONObject: headerDictionary)).base64EncodedString()
         self.teamId = teamId
         (self.token, self.issuedAt) = JSONWebToken.generateToken(privateKey: privateKey, header: header, teamId: teamId)
     }
@@ -61,9 +61,11 @@ public struct JSONWebToken {
     private static func generateToken(privateKey: UnsafeMutablePointer<EVP_PKEY>, header: String, teamId: String) -> (token: String, issuedAt: Date) {
         let issuedAt = Date()
         let claimsDictionary: [String : Any] = [
-            "iat": UInt64(issuedAt.timeIntervalSince1970),
+            // We need to wrap the UInt64 in NSNumber to not crash on Linux when generating the JSON
+            "iat": NSNumber(value: UInt64(issuedAt.timeIntervalSince1970)),
             "iss": teamId
         ]
+        
         let claims = try! JSONSerialization.data(withJSONObject: claimsDictionary).base64EncodedString()
         
         let content = "\(header).\(claims)"

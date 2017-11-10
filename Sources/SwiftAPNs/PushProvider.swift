@@ -31,7 +31,11 @@ public final class PushProvider: NSObject, URLSessionDelegate {
     }
     
     private lazy var session: URLSession = {
-        let configuration = URLSessionConfiguration.ephemeral
+        #if os(Linux)
+            let configuration = URLSessionConfiguration.default
+        #else
+            let configuration = URLSessionConfiguration.ephemeral
+        #endif
         return URLSession(configuration: configuration, delegate: self, delegateQueue: self.delegateQueue)
     }()
     
